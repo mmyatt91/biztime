@@ -1,22 +1,23 @@
 const express = require("express");
+const slugify = require("slugify")
 const ExpressError = require("../expressError")
 const db = require("../db"); 
 
 let router = new express.Router();
 
 // GET route: Return list of companies
-router.get('/', async (req, res, next) => { 
+router.get("/", async function (req, res, next) {
     try {
-      const results = await db.query(
-          `SELECT code, name 
-          FROM companies
-          ORDER BY code`
-        );
-      return res.json({ "companies": results.rows })
+      const result = await db.query(
+        `SELECT code, name
+        FROM companies
+        ORDER BY name`
+      );
+      return res.json({"companies": result.rows});
     } catch (e) {
       return next(e);
     }
-})
+  });
 
 // GET route: Return object of one company, and error handling for unfound company
 router.get('/:code', async (req, res, next) => { 
@@ -52,6 +53,7 @@ router.get('/:code', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
     try {
       const { name, description } = req.body;
+      const code = slugify(name, {lower: true})
       const result = await db.query(
           `INSERT INTO companies (code, name, description) 
           VALUES ($1, $2, $3) 
